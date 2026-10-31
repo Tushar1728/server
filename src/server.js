@@ -15,7 +15,7 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
     cors: {
-        origin: "http://localhost:5173"
+        origin: process.env.FRONTEND_URL
     }
 });
 
@@ -43,42 +43,31 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        console.log("DISCONNECT EVENT:", socket.id);
-
         const player = getPlayer(socket.id);
 
         if (!player) {
-            console.log("No player found for:", socket.id);
+            console.log("Player disconnected:", socket.id);
             return;
         }
 
         const roomCode = player.roomCode;
 
-        console.log("Player leaving room:", roomCode);
-
         removePlayer(socket.id);
-
-        const playersInRoom = getPlayersInRoom(roomCode);
-
-        console.log(
-            "Players remaining in room",
-            roomCode,
-            ":",
-            playersInRoom.length
-        );
-
-        if (playersInRoom.length === 0) {
-            deleteRoom(roomCode);
-            console.log("ROOM DELETED:", roomCode);
-        }
 
         socket.to(roomCode).emit("player-disconnected", {
             playerId: socket.id
         });
 
+        const playersInRoom = getPlayersInRoom(roomCode);
+
+        if (playersInRoom.length === 0) {
+            deleteRoom(roomCode);
+            console.log(`Room ${roomCode} deleted because it is empty`);
+        }
+
         console.log(`${socket.id} left room ${roomCode}`);
     });
-    
+
     socket.on("create-room", (playerName, callback) => {
         const roomCode = createRoom();
 
