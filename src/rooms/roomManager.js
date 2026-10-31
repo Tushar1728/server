@@ -18,3 +18,7 @@ export function createRoom() {
 export function roomExists(code) {
     return rooms.has(code);
 }
+
+export function deleteRoom(code) {
+    rooms.delete(code);
+}

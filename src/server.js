@@ -1,7 +1,7 @@
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { createRoom, roomExists } from "./rooms/roomManager.js";
+import { createRoom, roomExists, deleteRoom } from "./rooms/roomManager.js";
 import {
     addPlayer,
     getPlayer,
@@ -15,12 +15,8 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
     cors: {
-        origin: process.env.FRONTEND_URL
+        origin: "http://localhost:5173"
     }
-});
-
-app.get("/health", (req, res) => {
-    res.json({ status: "ok" });
 });
 
 io.on("connection", (socket) => {
@@ -54,15 +50,22 @@ io.on("connection", (socket) => {
             return;
         }
 
+        const roomCode = player.roomCode;
+
         removePlayer(socket.id);
 
-        socket.to(player.roomCode).emit("player-disconnected", {
+        socket.to(roomCode).emit("player-disconnected", {
             playerId: socket.id
         });
 
-        console.log(
-            `${socket.id} left room ${player.roomCode}`
-        );
+        const playersInRoom = getPlayersInRoom(roomCode);
+
+        if (playersInRoom.length === 0) {
+            deleteRoom(roomCode);
+            console.log(`Room ${roomCode} deleted because it is empty`);
+        }
+
+        console.log(`${socket.id} left room ${roomCode}`);
     });
 
     socket.on("create-room", (playerName, callback) => {
@@ -113,8 +116,6 @@ io.on("connection", (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
-
-httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
+httpServer.listen(3000, () => {
+    console.log("Server running on port 3000");
 });
