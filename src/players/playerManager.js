@@ -1,11 +1,12 @@
 const players = new Map();
 
-export function addPlayer(playerId, roomCode, username) {
+export function addPlayer(playerId, roomCode, username, avatarId) {
 
     players.set(playerId, {
         id: playerId,
         roomCode: roomCode,
         username: username,
+        avatarId: avatarId || "player1",
         x: 720,
         y: 480,
         direction: "down"

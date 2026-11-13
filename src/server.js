@@ -68,12 +68,12 @@ io.on("connection", (socket) => {
         console.log(`${socket.id} left room ${roomCode}`);
     });
 
-    socket.on("create-room", (playerName, callback) => {
+    socket.on("create-room", (playerName, avatarId, callback) => {
         const roomCode = createRoom();
 
         socket.join(roomCode);
 
-        addPlayer(socket.id, roomCode, playerName);
+        addPlayer(socket.id, roomCode, playerName, avatarId);
 
         callback({
             success: true,
@@ -84,7 +84,8 @@ io.on("connection", (socket) => {
         console.log(`${socket.id} created room ${roomCode}`);
     });
 
-    socket.on("join-room", (roomCode, playerName, callback) => {
+    socket.on("join-room", (roomCode, playerName, avatarId, callback) => {
+
         if (!roomExists(roomCode)) {
             callback({
                 success: false,
@@ -97,7 +98,7 @@ io.on("connection", (socket) => {
 
         socket.join(roomCode);
 
-        addPlayer(socket.id, roomCode, playerName);
+        addPlayer(socket.id, roomCode, playerName, avatarId);
 
         const player = getPlayer(socket.id);
 
